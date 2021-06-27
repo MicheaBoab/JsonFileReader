@@ -21,6 +21,7 @@ private slots:
     void on_openTransButton_clicked();
 
     void on_saveButton_clicked();
+    void read_and_save(QJsonObject &obj);
     //QJsonValue findKey(const QString& key, const QJsonValue& value);
 
 private:

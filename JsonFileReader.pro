@@ -16,25 +16,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    json/json_reader.cpp \
-    json/json_value.cpp \
-    json/json_writer.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
-    json/allocator.h \
-    json/assertions.h \
-    json/config.h \
-    json/forwards.h \
-    json/json.h \
-    json/json_features.h \
-    json/json_tool.h \
-    json/json_valueiterator.inl \
-    json/reader.h \
-    json/value.h \
-    json/version.h \
-    json/writer.h \
     mainwindow.h
 
 FORMS += \

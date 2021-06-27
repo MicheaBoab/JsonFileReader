@@ -70,16 +70,22 @@ void MainWindow::loadFile()
         qDebug() << "Object " << i.key();
         if(i.value().isObject())
         {
-            if(i.value().isObject())
-            {
-                qDebug() << "OBJECT " << i.key();
-                QJsonObject innerObject = i.value().toObject();
-                QJsonObject::iterator j;
-                for(j = innerObject.begin(); j != innerObject.end(); j++)
-                {
-                    qDebug() << "Object " << j.key();
-                }
-            }
+            QJsonObject inner = i.value().toObject();
+            read_and_save(inner);
+        }
+    }
+}
+
+void MainWindow::read_and_save(QJsonObject &obj)
+{
+    QJsonObject::iterator i;
+    for(i = obj.begin(); i != obj.end(); ++i)
+    {
+        qDebug() << "Object " << i.key();
+        if(i.value().isObject())
+        {
+            QJsonObject inner = i.value().toObject();
+            read_and_save(inner);
         }
     }
 }
