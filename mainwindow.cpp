@@ -8,6 +8,7 @@
 #include "QJsonObject"
 #include "QJsonValue"
 #include "QJsonArray"
+#include "QTableWidgetItem"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -38,7 +39,7 @@ void MainWindow::on_openNewButton_clicked()
     curOpenFile = filename1;
     if(!filename1.isEmpty())
     {
-        loadFile();
+        load_new_File();
     }
     else
     {
@@ -46,7 +47,7 @@ void MainWindow::on_openNewButton_clicked()
     }
 }
 
-void MainWindow::loadFile()
+void MainWindow::load_new_File()
 {
     QString val;
     QFile file(curOpenFile);
@@ -62,50 +63,117 @@ void MainWindow::loadFile()
     QJsonDocument document = QJsonDocument::fromJson(val.toUtf8());
     QJsonObject object = document.object();
 
-    QJsonObject::iterator i;
+    ui->tableWidget->setRowCount(0);
 
-    //读取并返回每个level的key
-    for(i = object.begin(); i != object.end(); ++i)
-    {
-        qDebug() << "Object " << i.key();
-        if(i.value().isObject())
-        {
-            QJsonObject inner = i.value().toObject();
-            read_and_save(inner);
-        }
-    }
+    //循环读取所以level的key
+    read_new(object);
+    //qDebug() << item_count;
+    ui->tableWidget->resizeColumnsToContents();
 }
 
-void MainWindow::read_and_save(QJsonObject &obj)
+//循环读取所有level的key
+void MainWindow::read_new(QJsonObject &obj)
 {
     QJsonObject::iterator i;
     for(i = obj.begin(); i != obj.end(); ++i)
     {
-        qDebug() << "Object " << i.key();
+        item_count++;
+
+        key =i.key();
+        value = obj.value(i.key()).toString();
+
+        ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+        int temp = ui->tableWidget->rowCount() - 1;
+
+        //set the table column by column
+        ui->tableWidget->setItem(temp, Keys, new QTableWidgetItem(key));
+        ui->tableWidget->setItem(temp, Values, new QTableWidgetItem(value));
+
         if(i.value().isObject())
         {
-            QJsonObject inner = i.value().toObject();
-            read_and_save(inner);
+            ui->tableWidget->setItem(temp, Values, new QTableWidgetItem(" "));
+            ui->tableWidget->editItem(ui->tableWidget->currentItem());
         }
+
+        QJsonObject inner = i.value().toObject();
+        read_new(inner);
     }
 }
 
 //输入参考/旧文件
 void MainWindow::on_openTransButton_clicked()
 {
-/*
-    QFile file("地址");
-    file.open(QIODevice::ReadOnly);
-
-    if(!file.isOpen())
+    QString filename1 = QFileDialog::getOpenFileName(
+                this,
+                "TextEditor - Open",
+                "",
+                "Json File (*.json);;All Files (*.*)");
+    curOpenFile = filename1;
+    if(!filename1.isEmpty())
     {
-        qDebug() << "error: couldn't open scratch.json";
-        return 0;
+        load_old_File();
     }
-    //用findkey找对应key的值
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-    qDebug() << "value:" << findKey("treasure", doc.object());
-*/
+    else
+    {
+        return;
+    }
+}
+
+void MainWindow::load_old_File()
+{
+    QString val;
+    QFile file(curOpenFile);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can not open file";
+        return;
+    }
+    val = file.readAll();
+
+    file.close();
+
+    QJsonDocument document = QJsonDocument::fromJson(val.toUtf8());
+    QJsonObject object = document.object();
+
+    //ui->tableWidget->setItem(temp, Results, new QTableWidgetItem("value"));
+
+    qDebug() << ui->tableWidget->rowCount();
+    for(int i = 0; i < ui->tableWidget->rowCount(); i++)
+    {
+        //qDebug() << "now searching for " << ui->tableWidget->item(i,0)->text();
+        QString t_value = searchingValueFromKey(object, ui->tableWidget->item(i,0)->text());
+        //qDebug() << t_value;
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(t_value));
+    }
+
+    ui->tableWidget->resizeColumnsToContents();
+}
+
+
+QString MainWindow::searchingValueFromKey(QJsonObject &obj, QString t_key)
+{
+    QString result = "Nothing was been Found";
+
+    QJsonObject::iterator i;
+    for(i = obj.begin(); i != obj.end(); ++i)
+    {
+        if(obj.contains(t_key))
+        {
+            result = obj[t_key].toString();
+            return result;
+        }
+        else if(i.value().isObject())
+        {
+            QJsonObject inner = i.value().toObject();
+            result = searchingValueFromKey(inner, t_key);
+            //确认key找到对应值
+            if(result != "Nothing was been Found")
+            {
+                return result;
+            }
+        }
+    }
+    return result;
 }
 
 void MainWindow::on_saveButton_clicked()
@@ -148,36 +216,3 @@ void MainWindow::saveFile()
 
     file.close();
 }
-
-/*
-//在json文件中自动搜寻特定key并返回特定值
-QJsonValue MainWindow::findKey(const QString& key, const QJsonValue& value)
-{
-    if (value.isObject())
-    {
-        const QJsonObject obj = value.toObject();
-        if (obj.contains(key))
-        {
-            return obj.value(key);           // return 'early' if object contains key
-        }
-        for (const auto& value : obj)
-        {
-            QJsonValue recurse = findKey(key, value);  // call itself, forwarding a value
-            if (!recurse.isNull())
-            {
-                return recurse;              // value found, return 'early'
-            }
-        }
-    }else if (value.isArray())
-    {
-        for (const auto& value : value.toArray())
-        {
-            QJsonValue recurse = findKey(key, value);
-            if (!recurse.isNull())
-            {
-                return recurse;
-            }
-        }
-    }
-}
-*/

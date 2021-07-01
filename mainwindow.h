@@ -21,17 +21,23 @@ private slots:
     void on_openTransButton_clicked();
 
     void on_saveButton_clicked();
-    void read_and_save(QJsonObject &obj);
-    //QJsonValue findKey(const QString& key, const QJsonValue& value);
+
+    void read_new(QJsonObject &obj);
+
+    QString searchingValueFromKey(QJsonObject &obj, QString t_key);
 
 private:
     Ui::MainWindow *ui;
 
     void saveFile();
-    void loadFile();
+    void load_new_File();
+    void load_old_File();
+    int item_count = 0;
 
     QString curSaveFile;
     QString curOpenFile;
+    QString key;
+    QString value;
 
     enum Column
     {
