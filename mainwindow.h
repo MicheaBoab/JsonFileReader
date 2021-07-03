@@ -24,7 +24,7 @@ private slots:
 
     void read_new(QJsonObject &obj);
 
-    QString searchingValueFromKey(QJsonObject &obj, QString t_key);
+    QString searchingValueFromKey(const QJsonObject &obj, QString t_key);
 
 private:
     Ui::MainWindow *ui;

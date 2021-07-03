@@ -82,17 +82,13 @@ void MainWindow::read_new(QJsonObject &obj)
         key =i.key();
         value = obj.value(i.key()).toString();
 
-        ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-        int temp = ui->tableWidget->rowCount() - 1;
-
         //set the table column by column
-        ui->tableWidget->setItem(temp, Keys, new QTableWidgetItem(key));
-        ui->tableWidget->setItem(temp, Values, new QTableWidgetItem(value));
-
-        if(i.value().isObject())
+        if(!i.value().isObject())
         {
-            ui->tableWidget->setItem(temp, Values, new QTableWidgetItem(" "));
-            ui->tableWidget->editItem(ui->tableWidget->currentItem());
+            ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+            int temp = ui->tableWidget->rowCount() - 1;
+            ui->tableWidget->setItem(temp, Keys, new QTableWidgetItem(key));
+            ui->tableWidget->setItem(temp, Values, new QTableWidgetItem(value));
         }
 
         QJsonObject inner = i.value().toObject();
@@ -135,12 +131,8 @@ void MainWindow::load_old_File()
     QJsonDocument document = QJsonDocument::fromJson(val.toUtf8());
     QJsonObject object = document.object();
 
-    //ui->tableWidget->setItem(temp, Results, new QTableWidgetItem("value"));
-
-    qDebug() << ui->tableWidget->rowCount();
     for(int i = 0; i < ui->tableWidget->rowCount(); i++)
     {
-        //qDebug() << "now searching for " << ui->tableWidget->item(i,0)->text();
         QString t_value = searchingValueFromKey(object, ui->tableWidget->item(i,0)->text());
         //qDebug() << t_value;
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(t_value));
@@ -149,30 +141,56 @@ void MainWindow::load_old_File()
     ui->tableWidget->resizeColumnsToContents();
 }
 
-
-QString MainWindow::searchingValueFromKey(QJsonObject &obj, QString t_key)
+QString MainWindow::searchingValueFromKey(const QJsonObject &obj, QString t_key)
 {
     QString result = "Nothing was been Found";
-
-    QJsonObject::iterator i;
-    for(i = obj.begin(); i != obj.end(); ++i)
+/*
+    if(t_key=="Aimbot")
     {
-        if(obj.contains(t_key))
+        qDebug()<<"Searching bot";
+    }
+*/
+    if(obj.contains(t_key))
+    {
+        if(!obj[t_key].isObject())
         {
             result = obj[t_key].toString();
+            /*
+            if(t_key=="Aimbot")
+            {
+                qDebug()<<"Found result: "<<result;
+            }
+            */
             return result;
         }
-        else if(i.value().isObject())
+    }
+    //QJsonObject::iterator i;
+    for(auto i = obj.constBegin(); i != obj.constEnd(); ++i)
+    {
+        if(i.value().isObject())
         {
             QJsonObject inner = i.value().toObject();
             result = searchingValueFromKey(inner, t_key);
             //确认key找到对应值
             if(result != "Nothing was been Found")
             {
+                /*
+                if(t_key=="Aimbot")
+                {
+                    qDebug()<<"Recursive found: "<<result;
+                }
+                */
                 return result;
             }
+
         }
     }
+    /*
+    if(t_key=="Aimbot")
+    {
+        qDebug()<<"Returning default result";
+    }
+    */
     return result;
 }
 
